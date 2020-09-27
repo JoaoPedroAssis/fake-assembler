@@ -28,3 +28,6 @@ montador
 *.la
 *.a
 *.lib
+
+# PDF Instructions
+*.pdf
