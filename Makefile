@@ -8,7 +8,7 @@ DEP_FLAGS = -MT $@ -MMD -MP -MF $(DEP_PATH)/$*.d
 
 DIRECTIVES = -std=c++11 -c -I $(HEADER_PATH) -g
 
-LIBS = -lm -lncurses
+LIBS = -lm
 
 HEADER_PATH = include
 SRC_PATH = src
