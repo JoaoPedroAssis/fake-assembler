@@ -1,5 +1,6 @@
 #include <fstream>
 #include <unordered_map>
+#include <vector>
 
 using namespace std;
 
@@ -14,7 +15,10 @@ typedef struct {
 class Assembler {
 
 private:
-    ofstream program;
+    ifstream program;
+    string programFilename;
+    int line;
+    int memAddr;
 
     unordered_map<string, Instruction> Instructions = {
         {"ADD",     (Instruction) {1, 1, 2}},
@@ -42,7 +46,14 @@ private:
 
     };
 
+    unordered_map<string, int> symbolTable;
+
+    const vector<string> split(const string&, const char&, const char&);
+    void firstPass();
+    void secondPass();
+
 public:
-    Assembler(/* args */);
+    Assembler(string);
     ~Assembler();
+    void assemble(unsigned short int);
 };

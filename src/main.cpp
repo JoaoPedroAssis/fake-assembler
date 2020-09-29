@@ -11,14 +11,16 @@ int main(int argc, char const *argv[]) {
         return 0;
     }
 
-    string op, filepath;
+    string op, programFilepath;
 
     op = argv[1];
-    filepath = argv[2];
+    programFilepath = argv[2];
 
-    // Splitting the filename from filepath
-    string file = filepath.substr(filepath.find_last_of("/") + 1);
-    string filename = file.substr(0, file.find_last_of('.'));
+    
+
+    Assembler *assembler = new Assembler(programFilepath);
+
+    assembler->assemble(1);
 
     return 0;
 }
