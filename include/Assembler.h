@@ -15,10 +15,13 @@ typedef struct {
 class Assembler {
 
 private:
-    ifstream program;
+    fstream program;
     string programFilename;
+    string programFilepath;
+    vector<string> preProcessedFile;
     int line;
     int memAddr;
+    bool getFromFile;
 
     unordered_map<string, Instruction> Instructions = {
         {"ADD",     (Instruction) {1, 1, 2}},
@@ -48,7 +51,15 @@ private:
 
     unordered_map<string, int> symbolTable;
 
+    /* Utility functions */
+
+    // Splits the string on the two specifyed delimiters
     const vector<string> split(const string&, const char&, const char&);
+
+    // Get the next line to be processed on first or second pass
+    bool getNextLine(string&);
+
+    // Assembler functions
     void firstPass();
     void secondPass();
 

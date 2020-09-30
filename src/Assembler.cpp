@@ -1,13 +1,15 @@
 #include <iostream>
 #include <fstream>
 #include "../include/Assembler.h"
+#include "../include/PreProcessor.h"
 
 using namespace std;
 
 Assembler::Assembler(string programFilepath) {
+    this->programFilepath = programFilepath;
     // TODO: verify if file is indeed opened
     // if its not, terminate program
-    this->program.open(programFilepath);
+    program.open(programFilepath);
 
     // Splitting the filename from filepath
     string file = programFilepath.substr(programFilepath.find_last_of("/") + 1);
@@ -15,7 +17,7 @@ Assembler::Assembler(string programFilepath) {
 }
 
 Assembler::~Assembler() {
-    this->program.close();
+    program.close();
 }
 
 // Splits a string in every character c1 and c2
@@ -94,21 +96,30 @@ void Assembler::firstPass() {
 }
 void Assembler::assemble(unsigned short int option) {
     switch (option) {
-    // Pre-process only "-p"
+    // Pre-process only "-p" and print pre-processed file
     case 0:
-        /* code */
+        PreProcessor *preProcessor = new PreProcessor(programFilepath, true);
+        preProcessor->preProcess();
         break;
     
     // Assemble only "-o"
     case 1:
+        getFromFile = true;
         firstPass();
+        secondPass();
         break;
 
     // Pre-process then assemble "-po"
     case 2:
+        PreProcessor *preProcessor = new PreProcessor(programFilepath, false);
+        preProcessedFile = preProcessor->preProcess();
+        getFromFile = false;
+        firstPass();
+        secondPass();
         break;
     
     default:
+        // Erro! opção inválida
         break;
     }
 }
