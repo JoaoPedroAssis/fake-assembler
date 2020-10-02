@@ -2,6 +2,8 @@
 #include <unordered_map>
 #include <vector>
 
+#include "File.h"
+
 using namespace std;
 
 typedef struct {
@@ -15,10 +17,11 @@ typedef struct {
 class Assembler {
 
 private:
-    fstream program;
+
+    File* program;
+
     string programFilename;
     string programFilepath;
-    vector<string> preProcessedFile;
     int line;
     int memAddr;
     bool getFromFile;
@@ -56,9 +59,6 @@ private:
     // Splits the string on the two specifyed delimiters
     const vector<string> split(const string&, const char&, const char&);
 
-    // Get the next line to be processed on first or second pass
-    bool getNextLine(string&);
-
     // Assembler functions
     void firstPass();
     void secondPass();
@@ -66,5 +66,5 @@ private:
 public:
     Assembler(string);
     ~Assembler();
-    void assemble(unsigned short int);
+    void assemble(int);
 };

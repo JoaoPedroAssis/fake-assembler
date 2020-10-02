@@ -6,10 +6,8 @@
 using namespace std;
 
 Assembler::Assembler(string programFilepath) {
+
     this->programFilepath = programFilepath;
-    // TODO: verify if file is indeed opened
-    // if its not, terminate program
-    program.open(programFilepath);
 
     // Splitting the filename from filepath
     string file = programFilepath.substr(programFilepath.find_last_of("/") + 1);
@@ -17,7 +15,6 @@ Assembler::Assembler(string programFilepath) {
 }
 
 Assembler::~Assembler() {
-    program.close();
 }
 
 // Splits a string in every character c1 and c2
@@ -45,7 +42,7 @@ void Assembler::firstPass() {
     this->memAddr = 0;
 
     string line;
-    while(getline(program, line)) {
+    while(program->getNextLine(line)) {
         
         vector<string> lineContents;
         int instructionIdx = 0;
@@ -94,28 +91,39 @@ void Assembler::firstPass() {
         this->line++;
     }
 }
-void Assembler::assemble(unsigned short int option) {
+
+void Assembler::secondPass() {}
+
+void Assembler::assemble(int option) {
+    PreProcessor *preProcessor;
+    WrittenFile *wf;
+    MemoryFile *mf;
+
     switch (option) {
     // Pre-process only "-p" and print pre-processed file
     case 0:
-        PreProcessor *preProcessor = new PreProcessor(programFilepath, true);
+        preProcessor = new PreProcessor(programFilepath, true);
         preProcessor->preProcess();
         break;
     
     // Assemble only "-o"
     case 1:
-        getFromFile = true;
+        
+        wf = new WrittenFile(programFilepath);
+        this->program = wf;
+
         firstPass();
         secondPass();
         break;
 
     // Pre-process then assemble "-po"
     case 2:
-        PreProcessor *preProcessor = new PreProcessor(programFilepath, false);
-        preProcessedFile = preProcessor->preProcess();
-        getFromFile = false;
-        firstPass();
-        secondPass();
+        preProcessor = new PreProcessor(programFilepath, false);
+        mf = new MemoryFile(preProcessor->preProcess());
+        this->program = mf;
+
+        this->firstPass();
+        this->secondPass();
         break;
     
     default:
