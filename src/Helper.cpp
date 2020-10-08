@@ -55,3 +55,8 @@ string printArgs(Line *l) {
     
     return retLine;
 }
+
+string toUpper(string str) {
+    transform(str.begin(), str.end(),str.begin(), ::toupper);
+    return str;
+}
