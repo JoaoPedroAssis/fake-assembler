@@ -38,6 +38,7 @@ bool MemoryFile::getNextLine(string& line) {
         return false;
     } else {
         line = program[count];
+        count++;
         return true;
     }
 }

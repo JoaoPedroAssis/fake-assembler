@@ -1,4 +1,5 @@
-#pragma once
+#ifndef FILE_H
+#define FILE_H
 #include <iostream>
 #include <vector>
 #include <string>
@@ -35,3 +36,5 @@ public:
     MemoryFile(vector<string>);
     ~MemoryFile();
 };
+
+#endif // FILE_H
