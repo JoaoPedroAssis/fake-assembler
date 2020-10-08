@@ -2,6 +2,7 @@
 #include <fstream>
 #include "../include/Assembler.h"
 #include "../include/PreProcessor.h"
+#include "../include/Helper.h"
 
 using namespace std;
 
@@ -17,23 +18,7 @@ Assembler::Assembler(string programFilepath) {
 Assembler::~Assembler() {
 }
 
-// Splits a string in every character c1 and c2
-const vector<string> Assembler::split(const string& s, const char& c1, const char& c2) {
-	string buff{""};
-	vector<string> v;
-	
-	for(auto n:s) {
-		if(n != c1 && n != c2) {
-            buff+=n; 
-        }
-        else if((n == c1 || n == c2) && buff != "") { 
-            v.push_back(buff); buff = ""; 
-        }
-	}
-	if(buff != "") v.push_back(buff);
-	
-	return v;
-}
+
 
 void Assembler::firstPass() {
 
@@ -45,20 +30,19 @@ void Assembler::firstPass() {
     while(program->getNextLine(line)) {
         
         vector<string> lineContents;
-        int instructionIdx = 0;
 
         // Splitting each line in spaces and tabs
         lineContents = split(line, ' ', '\t');
+        Line *l = getLineElements(lineContents);
 
         // If the first line content has a ':' it is a label
-        size_t pos = lineContents[0].find(":");
+        size_t pos = l->label.find(":");
         string label;
 
         // If the line contains a label
         if (pos != string::npos) {
             // TODO fazer o label ser case insensitive e validar formato
-            label = lineContents[0].substr(0, pos);
-            instructionIdx = 1;
+            label = l->label.substr(0, pos);
 
             // Check if label is already defined
             if (symbolTable.find(label) == symbolTable.end()) {
@@ -72,16 +56,16 @@ void Assembler::firstPass() {
 
         Instruction instruction;
         Directive directive;
-        if (Instructions.find(lineContents[instructionIdx]) != Instructions.end()) {
+        if (Instructions.find(l->operation) != Instructions.end()) {
             // If the instruction is found, add its size to the memAddr counter
-            instruction = Instructions[lineContents[instructionIdx]];
+            instruction = Instructions[l->operation];
             this->memAddr += instruction.size;
         } else {
             // If the instructions is not found, search the directives table
-            if (Directives.find(lineContents[instructionIdx]) != Directives.end()) {
-                // Sice the program has been pre-processed
+            if (Directives.find(l->operation) != Directives.end()) {
+                //** Sice the program has been pre-processed
                 // if a directive is found, it can only be a SPACE or CONST
-                directive = Directives[lineContents[instructionIdx]];
+                directive = Directives[l->operation];
                 this->memAddr += directive.size;
             } else {
                 // Otherwise, operation is invalid
@@ -92,7 +76,47 @@ void Assembler::firstPass() {
     }
 }
 
-void Assembler::secondPass() {}
+void Assembler::secondPass() {
+    // Reset line and memory counters
+    this->line = 1;
+    this->memAddr = 0;
+
+    string line;
+    bool isInText = false;
+    bool isInData = false;
+    while(program->getNextLine(line)) {
+
+        vector<string> lineContents;
+        int opIdx = 0;
+
+        // Splitting each line in spaces and tabs
+        lineContents = split(line, ' ', '\t');
+        Line *l = getLineElements(lineContents); 
+
+        Directive directive;
+        Instruction instruction;
+        if (Directives.find(l->operation) != Directives.end()) {
+            directive = Directives[l->operation];
+            if (directive.args != l->args.size()) {
+                // TODO ERROR! NUMERO ERRADO DE OPERANDOS
+            }
+            if (l->operation == "SECTION") {
+                if (l->args[0] == "TEXT") {
+                    isInText = true;
+                    isInData = false;
+                } else if (l->args[0] == "DATA") {
+                    isInData = true;
+                    isInText = false;
+                } else {
+                    // SECTION INVALID;
+                }  
+            }
+        } else {
+            // Otherwise, operation is invalid
+            // ERRO! operação não identificada  
+        }
+    }
+}
 
 void Assembler::assemble(int option) {
     PreProcessor *preProcessor;
@@ -122,8 +146,8 @@ void Assembler::assemble(int option) {
         mf = new MemoryFile(preProcessor->preProcess());
         this->program = mf;
 
-        this->firstPass();
-        this->secondPass();
+        firstPass();
+        secondPass();
         break;
     
     default:

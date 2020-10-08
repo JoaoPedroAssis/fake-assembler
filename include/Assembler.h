@@ -1,3 +1,5 @@
+#ifndef ASSEMBLER_H
+#define ASSEMBLER_H
 #include <fstream>
 #include <unordered_map>
 #include <vector>
@@ -12,6 +14,7 @@ typedef struct {
 
 typedef struct {
     unsigned short int args, size;
+    string name;
 } Directive;
 
 class Assembler {
@@ -24,7 +27,6 @@ private:
     string programFilepath;
     int line;
     int memAddr;
-    bool getFromFile;
 
     unordered_map<string, Instruction> Instructions = {
         {"ADD",     (Instruction) {1, 1, 2}},
@@ -44,20 +46,15 @@ private:
     };
 
     unordered_map<string, Directive> Directives = {
-        {"SECTION", (Directive) {1, 0}},
-        {"SPACE",   (Directive) {0, 1}},
-        {"CONST",   (Directive) {1, 1}},
-        {"EQU",     (Directive) {1, 0}},
-        {"IF",      (Directive) {1, 0}},
+        {"SECTION", (Directive) {1, 0, "SECTION"}},
+        {"SPACE",   (Directive) {0, 1, "SPACE"}},
+        {"CONST",   (Directive) {1, 1, "CONST"}},
+        {"EQU",     (Directive) {1, 0, "EQU"}},
+        {"IF",      (Directive) {1, 0, "IF"}},
 
     };
 
     unordered_map<string, int> symbolTable;
-
-    /* Utility functions */
-
-    // Splits the string on the two specifyed delimiters
-    const vector<string> split(const string&, const char&, const char&);
 
     // Assembler functions
     void firstPass();
@@ -68,3 +65,5 @@ public:
     ~Assembler();
     void assemble(int);
 };
+
+#endif //ASSEMBLER_H
