@@ -1,8 +1,9 @@
 # Vscode stuff
 .vscode
 
-# Executable
+# Executable and related stuff
 montador
+*.pre
 
 # Prerequisites
 *.d
