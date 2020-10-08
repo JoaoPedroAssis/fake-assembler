@@ -42,7 +42,7 @@ private:
         {"STORE",   (Instruction) {1, 11, 2}},
         {"INPUT",   (Instruction) {1, 12, 2}},
         {"OUTPUT",  (Instruction) {1, 13, 2}},
-        {"STOP",    (Instruction) {0, 14, 2}}
+        {"STOP",    (Instruction) {0, 14, 1}}
     };
 
     unordered_map<string, Directive> Directives = {
