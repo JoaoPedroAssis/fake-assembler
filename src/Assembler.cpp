@@ -35,19 +35,14 @@ void Assembler::firstPass() {
         lineContents = split(line, ' ', '\t');
         Line *l = getLineElements(lineContents);
 
-        // If the first line content has a ':' it is a label
-        size_t pos = l->label.find(":");
-        string label;
-
         // If the line contains a label
-        if (pos != string::npos) {
+        if (!l->label.empty()) {
             // TODO fazer o label ser case insensitive e validar formato
-            label = l->label.substr(0, pos);
 
             // Check if label is already defined
-            if (symbolTable.find(label) == symbolTable.end()) {
+            if (symbolTable.find(l->label) == symbolTable.end()) {
                 // If not, add label
-                symbolTable[label] = this->memAddr;
+                symbolTable[l->label] = this->memAddr;
             } else {
                 // Otherwise throw error
                 // ERRO! Não é pra ter mais de um label
@@ -74,6 +69,8 @@ void Assembler::firstPass() {
         }
         this->line++;
     }
+
+    return;
 }
 
 void Assembler::secondPass() {
