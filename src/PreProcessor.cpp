@@ -33,7 +33,6 @@ vector<string> PreProcessor::preProcess() {
         lineContents = split(line, ' ', '\t');
         Line *l = getLineElements(lineContents);
         bool printCurrLine = true;
-        bool printNextLine = true;
 
         if (hasOnlyLabel(l)) {
             if (!l->label.empty()) {
@@ -54,7 +53,7 @@ vector<string> PreProcessor::preProcess() {
 
                 // Define se for a primeira vez, se for a segunda define por cima
                 defines[l->label] = stoi(tmp->args[0]);
-                // printCurrLine = false;
+                printCurrLine = false;
             } else if (tmp->operation == "IF") {
                 if (tmp->args.size() != 1) {
                     // ERRO!
@@ -84,6 +83,8 @@ vector<string> PreProcessor::preProcess() {
                 preProcessedLine += tmp->operation + " " + printArgs(tmp);
                 outputFile.push_back(preProcessedLine);
                 preProcessedLine = "";
+            } else {
+                preProcessedLine = "";
             }
         } else {
             if (!l->label.empty()) {
@@ -97,7 +98,7 @@ vector<string> PreProcessor::preProcess() {
 
                 // Define se for a primeira vez, se for a segunda define por cima
                 defines[l->label] = stoi(l->args[0]);
-                // printCurrLine = false;
+                printCurrLine = false;
             } else if (l->operation == "IF") {
                 if (l->args.size() != 1) {
                     // ERRO!
@@ -123,7 +124,9 @@ vector<string> PreProcessor::preProcess() {
 
             if (printCurrLine) {
                 preProcessedLine += l->operation + " " + printArgs(l);
-                outputFile.push_back(preProcessedLine);
+                outputFile.push_back(toUpper(preProcessedLine));
+                preProcessedLine = "";
+            } else {
                 preProcessedLine = "";
             }
         }
