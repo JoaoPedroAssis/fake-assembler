@@ -20,6 +20,11 @@ typedef struct {
 class Assembler {
 
 private:
+    enum {
+        DATA,
+        TEXT,
+        INVALID
+    };
 
     File* program;
 
@@ -27,6 +32,8 @@ private:
     string programFilepath;
     int line;
     int memAddr;
+
+    int section;
 
     unordered_map<string, Instruction> Instructions = {
         {"ADD",     (Instruction) {1, 1, 2}},
@@ -54,7 +61,13 @@ private:
 
     };
 
-    unordered_map<string, int> symbolTable;
+    unordered_map<string, int> symbolTable = {};
+
+    void setSection(string);
+    string assembleArgs(vector<string>);
+
+    // Use regex to validate labels and variables
+    bool labelIsValid(string);
 
     // Assembler functions
     void firstPass();
