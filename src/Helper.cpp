@@ -1,4 +1,5 @@
 #include "../include/Helper.h"
+#include <algorithm>
 
 const vector<string> split(const string& s, const char& c1, const char& c2) {
 	string buff{""};
@@ -36,6 +37,14 @@ Line* getLineElements(vector<string> &lineContents) {
 
     for (int i = opIdx+1; i < lineContents.size(); i++) {
         if (lineContents[i].find(";") == string::npos) {
+            lineContents[i].erase(
+                remove(
+                    lineContents[i].begin(),
+                    lineContents[i].end(),
+                    ','
+                ),
+                lineContents[i].end()
+            );
             l->args.push_back(lineContents[i]);
         }
     }
