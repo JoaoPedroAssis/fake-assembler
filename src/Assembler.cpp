@@ -48,6 +48,12 @@ string Assembler::assembleArgs(vector<string> args) {
     return retLine;
 }
 
+void Assembler::printAssembledFile() {
+    ofstream out("./" + this->programFilename + ".obj");
+    out << this->outputFile << endl;
+    out.close();
+}
+
 void Assembler::firstPass() {
 
     // Reset line and memAddr counters
@@ -167,9 +173,7 @@ void Assembler::secondPass() {
         this->line++;
     }
 
-    ofstream outputFile("./" + this->programFilename + ".obj");
-    outputFile << assembledLine;
-    outputFile.close();
+    this->outputFile = assembledLine;
 }
 
 void Assembler::assemble(int option) {
@@ -206,6 +210,15 @@ void Assembler::assemble(int option) {
     
     default:
         // Erro! opção inválida
+        // delete preProcessor;
+        // delete wf;
+        // delete mf;
+
+        throw invalid_argument("Opção inválida");
         break;
     }
+
+    // delete preProcessor;
+    // delete wf;
+    // delete mf;
 }

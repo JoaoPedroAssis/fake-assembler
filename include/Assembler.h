@@ -30,6 +30,7 @@ private:
 
     string programFilename;
     string programFilepath;
+    string outputFile;
     int line;
     int memAddr;
 
@@ -77,6 +78,7 @@ public:
     Assembler(string);
     ~Assembler();
     void assemble(int);
+    void printAssembledFile();
 };
 
 #endif //ASSEMBLER_H
