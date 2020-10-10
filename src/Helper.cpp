@@ -35,18 +35,34 @@ Line* getLineElements(vector<string> &lineContents) {
         l->operation = lineContents[0];
     }
 
+    // Para todos os elementos a partir de opIdx
     for (int i = opIdx+1; i < lineContents.size(); i++) {
+        // Ignora comentários
         if (lineContents[i].find(";") == string::npos) {
-            lineContents[i].erase(
-                remove(
-                    lineContents[i].begin(),
-                    lineContents[i].end(),
-                    ','
-                ),
-                lineContents[i].end()
-            );
+            // all args except the last one
+            if (i - 1 >= opIdx + 1) {
+                size_t pos = lineContents[i-1].find(",");
+                // If it does not have a comma, throw error
+                if (pos == string::npos) {
+                    throw invalid_argument("Argumento não separado por vírgula");
+                }
+            }
             l->args.push_back(lineContents[i]);
+        } else {
+            // If a comment is found, exit loop
+            break;
         }
+    }
+
+    for (int i = 0; i < l->args.size(); i++) {
+        l->args[i].erase(
+            remove(
+                l->args[i].begin(),
+                l->args[i].end(),
+                ','
+            ),
+            l->args[i].end()
+        );
     }
 
     return l;
