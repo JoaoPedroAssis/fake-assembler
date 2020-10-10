@@ -8,9 +8,8 @@ File::~File(){}
 WrittenFile::WrittenFile(string program) {
     this->program.open(program);
     if (!this->program.is_open()) {
-        throw invalid_argument("Não foi possível abrir o arquivo: " + program);
+        throw "Não foi possível abrir o arquivo: " + program;
     }
-    // Test if file is indeed opened
 }
 
 WrittenFile::~WrittenFile() {
