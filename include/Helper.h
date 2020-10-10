@@ -27,4 +27,7 @@ string printArgs(Line*);
 // Transform all chars to uppercase
 string toUpper(string);
 
+// Check if a string is integer
+bool isInteger(const string &s);
+
 #endif // HELPER_H

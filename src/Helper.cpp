@@ -75,7 +75,7 @@ bool hasOnlyLabel(Line* l) {
 string printArgs(Line *l) {
     string retLine = "";
     for (int i = 0; i < l->args.size(); i++) {
-        retLine += l->args[i] + (l->args.size()-1 == i ? "":" ");
+        retLine += l->args[i] + (l->args.size()-1 == i ? "":", ");
     }
     
     return retLine;
@@ -84,4 +84,8 @@ string printArgs(Line *l) {
 string toUpper(string str) {
     transform(str.begin(), str.end(),str.begin(), ::toupper);
     return str;
+}
+
+bool isInteger(const string &s) {
+    return std::regex_match(s, std::regex("-?[0-9]{0,10}"));
 }
