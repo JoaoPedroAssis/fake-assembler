@@ -12,6 +12,7 @@ class PreProcessor {
 private:
     fstream program;
     string programFilename;
+    string programFilepath;
     bool print;
     unordered_map<string, int> defines;
 

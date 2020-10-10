@@ -1,13 +1,21 @@
 #include <iostream>
 #include "../include/PreProcessor.h"
 #include "../include/Helper.h"
+#include "../include/Error.h"
 
 using namespace std;
 
 PreProcessor::PreProcessor(string program, bool print) {
+
+    programFilepath = program;
+
     // TODO: verify if file is indeed opened
     // if its not, terminate program
     this->program.open(program);
+    if (!this->program.is_open()) {
+        throw invalid_argument("Não foi possível abrir o arquivo: " + program);
+    }
+    
     this->print = print;
 
     string file = program.substr(program.find_last_of("/") + 1);
@@ -21,11 +29,13 @@ PreProcessor::~PreProcessor() {
 vector<string> PreProcessor::preProcess() {
     vector<string> outputFile;
     
+    int fileLine = 1;
     string line;
     string preProcessedLine = "";
     while(getline(this->program, line)) {
         if (line == "" or line[0] == ';') {
             // Ignore empty lines
+            fileLine++;
             continue;
         }
         vector<string> lineContents;
@@ -41,7 +51,9 @@ vector<string> PreProcessor::preProcess() {
 
             if (!getline(this->program, line)) {
                 //EOF
+                break;
             }
+            fileLine++;
 
             vector<string> tmpLineContents = split(line, ' ', '\t');
             Line *tmp = getLineElements(tmpLineContents);
@@ -49,6 +61,13 @@ vector<string> PreProcessor::preProcess() {
             if (tmp->operation == "EQU") {
                 if (tmp->args.size() != 1) {
                     // ERRO!
+                    Errors::addError(
+                        "Número de parâmetros incorreto",
+                        line,
+                        this->programFilepath,
+                        fileLine,
+                        Errors::SYNTATIC_ERROR
+                    );
                 }
 
                 // Define se for a primeira vez, se for a segunda define por cima
@@ -57,15 +76,30 @@ vector<string> PreProcessor::preProcess() {
             } else if (tmp->operation == "IF") {
                 if (tmp->args.size() != 1) {
                     // ERRO!
+                    Errors::addError(
+                        "Número de parâmetros incorreto",
+                        line,
+                        this->programFilepath,
+                        fileLine,
+                        Errors::SYNTATIC_ERROR
+                    );
                 }
                 
                 if (defines.find(l->args[0]) == defines.end()) {
                     // ERRO LABEL INDEFINIDO
+                    Errors::addError(
+                        "Rótulo indefinido",
+                        line,
+                        this->programFilepath,
+                        fileLine,
+                        Errors::SYNTATIC_ERROR
+                    );
                 } else {
                     int define = defines[l->args[0]];
                     if (define == 0) {
                         // pega a prox linha e ignora
                         getline(this->program, line);
+                        fileLine++;
                     }
                 }
                 printCurrLine = false;
@@ -73,6 +107,13 @@ vector<string> PreProcessor::preProcess() {
                 for (int i = 0; i < tmp->args.size(); i++) {
                     if (defines.find(tmp->args[i]) == defines.end()) {
                         // ERRO LABEL INDEFINIDO
+                        Errors::addError(
+                            "Rótulo indefinido",
+                            line,
+                            this->programFilepath,
+                            fileLine,
+                            Errors::SYNTATIC_ERROR
+                        );
                     } else {
                         tmp->args[i] = defines[tmp->args[i]];
                     }
@@ -94,6 +135,13 @@ vector<string> PreProcessor::preProcess() {
             if (l->operation == "EQU") {
                 if (l->args.size() != 1) {
                     // ERRO!
+                    Errors::addError(
+                        "Número de parâmetros incorreto",
+                        line,
+                        this->programFilepath,
+                        fileLine,
+                        Errors::SYNTATIC_ERROR
+                    );
                 }
 
                 // Define se for a primeira vez, se for a segunda define por cima
@@ -102,15 +150,30 @@ vector<string> PreProcessor::preProcess() {
             } else if (l->operation == "IF") {
                 if (l->args.size() != 1) {
                     // ERRO!
+                    Errors::addError(
+                        "Número de parâmetros incorreto",
+                        line,
+                        this->programFilepath,
+                        fileLine,
+                        Errors::SYNTATIC_ERROR
+                    );
                 }
 
                 if (defines.find(l->args[0]) == defines.end()) {
                     // ERRO LABEL INDEFINIDO
+                    Errors::addError(
+                        "Rótulo indefinido",
+                        line,
+                        this->programFilepath,
+                        fileLine,
+                        Errors::SYNTATIC_ERROR
+                    );
                 } else {
                     int define = defines[l->args[0]];
                     if (define == 0) {
                         // pega a prox linha e ignora
                         getline(this->program, line);
+                        fileLine++;
                     }
                 }
                 printCurrLine = false;
@@ -130,6 +193,7 @@ vector<string> PreProcessor::preProcess() {
                 preProcessedLine = "";
             }
         }
+        fileLine++;
     }
 
     if (print) {
