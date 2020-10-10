@@ -27,7 +27,7 @@ public:
         SEMANTIC_ERROR
     };
 
-    static void addError(string, string, string, int, int);
+    static void addError(string message, string line, string filename, int fileLine, int errorType);
     static bool hasError();
     static void printErrors();
 };
