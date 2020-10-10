@@ -3,6 +3,7 @@
 #include "../include/Assembler.h"
 #include "../include/PreProcessor.h"
 #include "../include/Helper.h"
+#include "../include/Error.h"
 
 using namespace std;
 
@@ -24,7 +25,6 @@ void Assembler::setSection(string section) {
     } else if (section == "DATA") {
         section = DATA;
     } else {
-        // Section invalid trow ERROR
         section = INVALID;
     }
 }
@@ -72,7 +72,19 @@ void Assembler::firstPass() {
 
         // Splitting each line in spaces and tabs
         lineContents = split(line, ' ', '\t');
-        Line *l = getLineElements(lineContents);
+        Line* l;
+        try {
+            l = getLineElements(lineContents);
+        } catch (invalid_argument& e) {
+            Errors::addError(
+                e.what(),
+                line,
+                this->programFilepath,
+                this->line,
+                Errors::SYNTATIC_ERROR
+            );
+            continue;
+        }
 
         // If the line contains a label
         if (!l->label.empty()) {
@@ -84,9 +96,25 @@ void Assembler::firstPass() {
                 } else {
                     // Otherwise throw error
                     // ERRO! Não é pra ter mais de um label
+                    Errors::addError(
+                        "Rótulo já definido",
+                        line,
+                        this->programFilepath,
+                        this->line,
+                        Errors::SEMANTIC_ERROR
+                    );
+                    continue;
                 }
             } else {
                 // ERROR! LABEL INVALID
+                Errors::addError(
+                    "Formato de rótulo inválido",
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::LEXICAL_ERROR
+                );
+                continue;
             }
         }            
 
@@ -105,7 +133,15 @@ void Assembler::firstPass() {
                 this->memAddr += directive.size;
             } else {
                 // Otherwise, operation is invalid
-                // ERRO! operação não identificada  
+                // ERRO! operação não identificada
+                Errors::addError(
+                    "Operação não identificada",
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::SEMANTIC_ERROR
+                );
+                continue;
             }
         }
         this->line++;
@@ -130,11 +166,47 @@ void Assembler::secondPass() {
 
         // Splitting each line in spaces and tabs
         lineContents = split(line, ' ', '\t');
-        Line *l = getLineElements(lineContents); 
+        Line* l;
+        try {
+            l = getLineElements(lineContents);
+        } catch (invalid_argument& e) {
+            Errors::addError(
+                e.what(),
+                line,
+                this->programFilepath,
+                this->line,
+                Errors::SYNTATIC_ERROR
+            );
+            continue;
+        }
+
+        // Check if the Section TEXT is missing in the first line
+        if (this->line == 1 and (l->operation != "SECTION" and l->args[0] != "TEXT")) {
+            Errors::addError(
+                "Seção TEXT faltante",
+                line,
+                this->programFilepath,
+                this->line,
+                Errors::LEXICAL_ERROR
+            );
+            continue;
+        }
 
         // Check section
         if (l->operation == "SECTION") {
+
             setSection(l->args[0]);
+
+            if (this->section == INVALID) {
+                Errors::addError(
+                    "Seção inválida",
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::SEMANTIC_ERROR
+                );
+                continue;
+            }
         }
 
         Directive directive;
@@ -142,23 +214,58 @@ void Assembler::secondPass() {
         if(Instructions.find(l->operation) != Instructions.end()) {
             if (section != TEXT) {
                 //ERRO
+                Errors::addError(
+                    "Operação em seção incorreta",
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::SEMANTIC_ERROR
+                );
+                continue;
             }
 
             instruction = Instructions[l->operation];
 
             if (instruction.args != l->args.size()) {
-                // TODO ERROR! NUMERO ERRADO DE OPERANDOS
+                Errors::addError(
+                    "Número incorreto de operandos. Esperado " +
+                    to_string(instruction.args) + ", obtido " +
+                    to_string(l->args.size()),
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::SYNTATIC_ERROR
+                );
+                continue;
             }
             assembledLine += to_string(instruction.opcode) + " " + assembleArgs(l->args);
         } else if (Directives.find(l->operation) != Directives.end()) {
             if (section != DATA) {
-               // ERRO 
+               // ERRO
+                Errors::addError(
+                    "Operação em seção incorreta",
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::SEMANTIC_ERROR
+                );
+                continue;
             }
 
             directive = Directives[l->operation];
 
             if (directive.args != l->args.size()) {
                 // TODO ERROR! NUMERO ERRADO DE OPERANDOS
+                Errors::addError(
+                    "Número incorreto de operandos. Esperado " +
+                    to_string(instruction.args) + ", obtido " +
+                    to_string(l->args.size()),
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::SYNTATIC_ERROR
+                );
+                continue;
             }
             
             if (l->operation == "CONST") {
@@ -169,6 +276,14 @@ void Assembler::secondPass() {
         } else {
             // Otherwise, operation is invalid
             // ERRO! operação não identificada  
+            Errors::addError(
+                "Operação não identificada",
+                line,
+                this->programFilepath,
+                this->line,
+                Errors::SYNTATIC_ERROR
+            );
+            continue;
         }
         this->line++;
     }
@@ -186,6 +301,11 @@ void Assembler::assemble(int option) {
     case 0:
         preProcessor = new PreProcessor(programFilepath, true);
         preProcessor->preProcess();
+
+        if (Errors::hasError()) {
+            throw invalid_argument("O Pré Processamento do arquivo falhou");
+        }
+
         break;
     
     // Assemble only "-o"
@@ -196,6 +316,11 @@ void Assembler::assemble(int option) {
 
         firstPass();
         secondPass();
+
+        if (Errors::hasError()) {
+            throw invalid_argument("A montagem do arquivo falhou");
+        }
+
         break;
 
     // Pre-process then assemble "-po"
@@ -204,8 +329,17 @@ void Assembler::assemble(int option) {
         mf = new MemoryFile(preProcessor->preProcess());
         this->program = mf;
 
+        if (Errors::hasError()) {
+            throw invalid_argument("O Pré Processamento do arquivo falhou");
+        }
+
         firstPass();
         secondPass();
+
+        if (Errors::hasError()) {
+            throw invalid_argument("A montagem do arquivo falhou");
+        }
+
         break;
     
     default:

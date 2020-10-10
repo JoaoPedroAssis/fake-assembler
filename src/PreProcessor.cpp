@@ -13,7 +13,7 @@ PreProcessor::PreProcessor(string program, bool print) {
     // if its not, terminate program
     this->program.open(program);
     if (!this->program.is_open()) {
-        throw invalid_argument("Não foi possível abrir o arquivo: " + program);
+        throw ("Não foi possível abrir o arquivo: " + program);
     }
     
     this->print = print;
@@ -41,7 +41,19 @@ vector<string> PreProcessor::preProcess() {
         vector<string> lineContents;
 
         lineContents = split(line, ' ', '\t');
-        Line *l = getLineElements(lineContents);
+        Line *l;
+        try {
+            l = getLineElements(lineContents);
+        } catch (invalid_argument& e) {
+            Errors::addError(
+                e.what(),
+                line,
+                this->programFilepath,
+                fileLine,
+                Errors::SYNTATIC_ERROR
+            );
+            continue;
+        }
         bool printCurrLine = true;
 
         if (hasOnlyLabel(l)) {
@@ -56,7 +68,20 @@ vector<string> PreProcessor::preProcess() {
             fileLine++;
 
             vector<string> tmpLineContents = split(line, ' ', '\t');
-            Line *tmp = getLineElements(tmpLineContents);
+
+            Line *tmp;
+            try {
+                tmp = getLineElements(tmpLineContents);
+            } catch (invalid_argument& e) {
+                Errors::addError(
+                    e.what(),
+                    line,
+                    this->programFilepath,
+                    fileLine,
+                    Errors::SYNTATIC_ERROR
+                );
+                continue;
+            }
 
             if (tmp->operation == "EQU") {
                 if (tmp->args.size() != 1) {
@@ -68,6 +93,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    continue;
                 }
 
                 // Define se for a primeira vez, se for a segunda define por cima
@@ -83,6 +109,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    continue;
                 }
                 
                 if (defines.find(l->args[0]) == defines.end()) {
@@ -94,6 +121,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    continue;
                 } else {
                     int define = defines[l->args[0]];
                     if (define == 0) {
@@ -114,6 +142,7 @@ vector<string> PreProcessor::preProcess() {
                             fileLine,
                             Errors::SYNTATIC_ERROR
                         );
+                        continue;
                     } else {
                         tmp->args[i] = defines[tmp->args[i]];
                     }
@@ -142,6 +171,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    continue;
                 }
 
                 // Define se for a primeira vez, se for a segunda define por cima
@@ -157,6 +187,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    continue;
                 }
 
                 if (defines.find(l->args[0]) == defines.end()) {
@@ -168,6 +199,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    continue;
                 } else {
                     int define = defines[l->args[0]];
                     if (define == 0) {
