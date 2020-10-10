@@ -21,11 +21,11 @@ Assembler::~Assembler() {
 
 void Assembler::setSection(string section) {
     if (section == "TEXT") {
-        section = TEXT;
+        this->section = TEXT;
     } else if (section == "DATA") {
-        section = DATA;
+        this->section = DATA;
     } else {
-        section = INVALID;
+        this->section = INVALID;
     }
 }
 
@@ -42,6 +42,8 @@ string Assembler::assembleArgs(vector<string> args) {
         int memAddr;
         if (symbolTable.find(args[i]) != symbolTable.end()) {
             retLine += to_string(symbolTable[args[i]]) + " ";
+        } else {
+            throw invalid_argument("Rótulo indefinido");
         }
     }
 
@@ -83,6 +85,7 @@ void Assembler::firstPass() {
                 this->line,
                 Errors::SYNTATIC_ERROR
             );
+            this->line++;
             continue;
         }
 
@@ -103,6 +106,7 @@ void Assembler::firstPass() {
                         this->line,
                         Errors::SEMANTIC_ERROR
                     );
+                    this->line++;
                     continue;
                 }
             } else {
@@ -114,6 +118,7 @@ void Assembler::firstPass() {
                     this->line,
                     Errors::LEXICAL_ERROR
                 );
+                this->line++;
                 continue;
             }
         }            
@@ -139,8 +144,9 @@ void Assembler::firstPass() {
                     line,
                     this->programFilepath,
                     this->line,
-                    Errors::SEMANTIC_ERROR
+                    Errors::SYNTATIC_ERROR
                 );
+                this->line++;
                 continue;
             }
         }
@@ -161,6 +167,10 @@ void Assembler::secondPass() {
     string assembledLine;
     while(program->getNextLine(line)) {
 
+        if (line == "") {
+            this->line++;
+            continue;
+        }
         vector<string> lineContents;
         int opIdx = 0;
 
@@ -170,13 +180,8 @@ void Assembler::secondPass() {
         try {
             l = getLineElements(lineContents);
         } catch (invalid_argument& e) {
-            Errors::addError(
-                e.what(),
-                line,
-                this->programFilepath,
-                this->line,
-                Errors::SYNTATIC_ERROR
-            );
+            // Error already added in first pass
+            this->line++;
             continue;
         }
 
@@ -187,8 +192,9 @@ void Assembler::secondPass() {
                 line,
                 this->programFilepath,
                 this->line,
-                Errors::LEXICAL_ERROR
+                Errors::SEMANTIC_ERROR
             );
+            this->line++;
             continue;
         }
 
@@ -205,6 +211,7 @@ void Assembler::secondPass() {
                     this->line,
                     Errors::SEMANTIC_ERROR
                 );
+                this->line++;
                 continue;
             }
         }
@@ -221,6 +228,7 @@ void Assembler::secondPass() {
                     this->line,
                     Errors::SEMANTIC_ERROR
                 );
+                this->line++;
                 continue;
             }
 
@@ -236,11 +244,23 @@ void Assembler::secondPass() {
                     this->line,
                     Errors::SYNTATIC_ERROR
                 );
+                this->line++;
                 continue;
             }
-            assembledLine += to_string(instruction.opcode) + " " + assembleArgs(l->args);
+
+            try {
+                assembledLine += to_string(instruction.opcode) + " " + assembleArgs(l->args);
+            } catch(invalid_argument& e) {
+                Errors::addError(
+                    e.what(),
+                    line,
+                    this->programFilepath,
+                    this->line,
+                    Errors::SEMANTIC_ERROR
+                );
+            }
         } else if (Directives.find(l->operation) != Directives.end()) {
-            if (section != DATA) {
+            if (section != DATA and l->operation != "SECTION") {
                // ERRO
                 Errors::addError(
                     "Operação em seção incorreta",
@@ -249,6 +269,7 @@ void Assembler::secondPass() {
                     this->line,
                     Errors::SEMANTIC_ERROR
                 );
+                this->line++;
                 continue;
             }
 
@@ -265,24 +286,29 @@ void Assembler::secondPass() {
                     this->line,
                     Errors::SYNTATIC_ERROR
                 );
+                this->line++;
                 continue;
             }
             
             if (l->operation == "CONST") {
-                assembledLine += l->args[0] + " ";
+                if (isInteger(l->args[0])) {
+                    assembledLine += l->args[0] + " ";
+                } else {
+                    Errors::addError(
+                        "Operando inválido. Um inteiro é esperado.",
+                        line,
+                        this->programFilepath,
+                        this->line,
+                        Errors::SYNTATIC_ERROR
+                    );
+                }
             } else if (l->operation == "SPACE") {
                 assembledLine += "0 ";
             }
         } else {
             // Otherwise, operation is invalid
-            // ERRO! operação não identificada  
-            Errors::addError(
-                "Operação não identificada",
-                line,
-                this->programFilepath,
-                this->line,
-                Errors::SYNTATIC_ERROR
-            );
+            // Error already added in first pass
+            this->line++;
             continue;
         }
         this->line++;

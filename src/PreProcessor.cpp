@@ -52,6 +52,7 @@ vector<string> PreProcessor::preProcess() {
                 fileLine,
                 Errors::SYNTATIC_ERROR
             );
+            fileLine++;
             continue;
         }
         bool printCurrLine = true;
@@ -80,6 +81,7 @@ vector<string> PreProcessor::preProcess() {
                     fileLine,
                     Errors::SYNTATIC_ERROR
                 );
+                fileLine++;
                 continue;
             }
 
@@ -93,6 +95,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    fileLine++;
                     continue;
                 }
 
@@ -109,6 +112,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    fileLine++;
                     continue;
                 }
                 
@@ -119,8 +123,9 @@ vector<string> PreProcessor::preProcess() {
                         line,
                         this->programFilepath,
                         fileLine,
-                        Errors::SYNTATIC_ERROR
+                        Errors::SEMANTIC_ERROR
                     );
+                    fileLine++;
                     continue;
                 } else {
                     int define = defines[l->args[0]];
@@ -140,8 +145,9 @@ vector<string> PreProcessor::preProcess() {
                             line,
                             this->programFilepath,
                             fileLine,
-                            Errors::SYNTATIC_ERROR
+                            Errors::SEMANTIC_ERROR
                         );
+                        fileLine++;
                         continue;
                     } else {
                         tmp->args[i] = defines[tmp->args[i]];
@@ -171,6 +177,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    fileLine++;
                     continue;
                 }
 
@@ -187,6 +194,7 @@ vector<string> PreProcessor::preProcess() {
                         fileLine,
                         Errors::SYNTATIC_ERROR
                     );
+                    fileLine++;
                     continue;
                 }
 
@@ -197,8 +205,9 @@ vector<string> PreProcessor::preProcess() {
                         line,
                         this->programFilepath,
                         fileLine,
-                        Errors::SYNTATIC_ERROR
+                        Errors::SEMANTIC_ERROR
                     );
+                    fileLine++;
                     continue;
                 } else {
                     int define = defines[l->args[0]];
