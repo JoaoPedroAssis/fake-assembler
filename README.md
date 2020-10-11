@@ -1,5 +1,5 @@
 # Fake-Assembler
-This is the first assignment for the System Software discipline, which will contain an assembler for a fake assembly language. 
+This is the first assignment for the System Software discipline, which will contain an assembler for a fake assembly language. The repository can be found at https://github.com/JoaoPedroAssis/fake-assembler
 
 ## Compilation instructions
 
