@@ -6,6 +6,11 @@ File::~File(){}
 
 /* WrittenFile functions */
 WrittenFile::WrittenFile(string program) {
+
+    if (program.find(".pre") == string::npos) {
+        throw invalid_argument("Arquivo passado deve ter a extensão \".pre\"");
+    }
+
     this->program.open(program);
     if (!this->program.is_open()) {
         throw "Não foi possível abrir o arquivo: " + program;
