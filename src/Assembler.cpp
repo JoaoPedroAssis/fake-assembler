@@ -36,6 +36,7 @@ bool Assembler::labelIsValid(string label) {
         regex_match(label, regex("^[a-zA-Z_$][a-zA-Z_$0-9]*"));
 }
 
+// Replace args with its adress
 string Assembler::assembleArgs(vector<string> args) {
     string retLine;
     for (int i = 0; i < args.size(); i++) {
@@ -50,6 +51,7 @@ string Assembler::assembleArgs(vector<string> args) {
     return retLine;
 }
 
+// Print the object file
 void Assembler::printAssembledFile() {
     ofstream out("./" + this->programFilename + ".obj");
     out << this->outputFile << endl;
@@ -98,7 +100,6 @@ void Assembler::firstPass() {
                     this->symbolTable[l->label] = this->memAddr;
                 } else {
                     // Otherwise throw error
-                    // ERRO! Não é pra ter mais de um label
                     Errors::addError(
                         "Rótulo já definido",
                         line,
@@ -110,7 +111,6 @@ void Assembler::firstPass() {
                     continue;
                 }
             } else {
-                // ERROR! LABEL INVALID
                 Errors::addError(
                     "Formato de rótulo inválido",
                     line,
@@ -132,13 +132,11 @@ void Assembler::firstPass() {
         } else {
             // If the instructions is not found, search the directives table
             if (Directives.find(l->operation) != Directives.end()) {
-                //** Sice the program has been pre-processed
-                // if a directive is found, it can only be a SPACE or CONST
+                // Sum the directive size
                 directive = Directives[l->operation];
                 this->memAddr += directive.size;
             } else {
                 // Otherwise, operation is invalid
-                // ERRO! operação não identificada
                 Errors::addError(
                     "Operação não identificada",
                     line,
@@ -162,15 +160,15 @@ void Assembler::secondPass() {
     this->memAddr = 0;
 
     string line;
-    bool isInText = false;
-    bool isInData = false;
     string assembledLine;
     while(program->getNextLine(line)) {
 
+        // Skip empty lines
         if (line == "") {
             this->line++;
             continue;
         }
+
         vector<string> lineContents;
         int opIdx = 0;
 
@@ -203,6 +201,7 @@ void Assembler::secondPass() {
 
             setSection(l->args[0]);
 
+            // Check if invalid section is typed
             if (this->section == INVALID) {
                 Errors::addError(
                     "Seção inválida",
@@ -219,8 +218,9 @@ void Assembler::secondPass() {
         Directive directive;
         Instruction instruction;
         if(Instructions.find(l->operation) != Instructions.end()) {
+
+            // Instructions must be in SECTION TEXT
             if (section != TEXT) {
-                //ERRO
                 Errors::addError(
                     "Operação em seção incorreta",
                     line,
@@ -232,8 +232,10 @@ void Assembler::secondPass() {
                 continue;
             }
 
+            // Fetch instruction
             instruction = Instructions[l->operation];
 
+            // Check for the correct number of args
             if (instruction.args != l->args.size()) {
                 Errors::addError(
                     "Número incorreto de operandos. Esperado " +
@@ -248,9 +250,11 @@ void Assembler::secondPass() {
                 continue;
             }
 
+            // Try to assemble line
             try {
                 assembledLine += to_string(instruction.opcode) + " " + assembleArgs(l->args);
             } catch(invalid_argument& e) {
+                // assembleArgs() throws a "undefined label" error
                 Errors::addError(
                     e.what(),
                     line,
@@ -260,8 +264,9 @@ void Assembler::secondPass() {
                 );
             }
         } else if (Directives.find(l->operation) != Directives.end()) {
+
+            // CONST and SPACE directives must be in section text
             if (section != DATA and l->operation != "SECTION") {
-               // ERRO
                 Errors::addError(
                     "Operação em seção incorreta",
                     line,
@@ -273,10 +278,11 @@ void Assembler::secondPass() {
                 continue;
             }
 
+            // Fetch directive
             directive = Directives[l->operation];
-
+            
+            // Check for the correct number of args
             if (directive.args != l->args.size()) {
-                // TODO ERROR! NUMERO ERRADO DE OPERANDOS
                 Errors::addError(
                     "Número incorreto de operandos. Esperado " +
                     to_string(instruction.args) + ", obtido " +
