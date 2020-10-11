@@ -19,7 +19,9 @@ bool Errors::hasError() {
 }
 
 void Errors::printErrors() {
-    cout << "Programa não montado devido aos seguintes erros:" << endl << endl;
+    if (Errors::hasError()){
+        cout << "Programa não montado devido aos seguintes erros:" << endl << endl;
+    }
     for (Error e: Errors::allErrors) {
         string line;
         line += "Erro " + errorTypes[e.errorType] + " no arquivo " + e.filename + ", na linha " + to_string(e.fileLine) + ": ";

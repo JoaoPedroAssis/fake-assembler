@@ -6,31 +6,33 @@
 using namespace std;
 
 int main(int argc, char const *argv[]) {
-    
-    if (argc != 3) {
-        cout << "Incorrect number of arguments. Given: " << argc << ", Expected 3" << endl;
+
+    string flag, programFilepath;
+    int op;
+
+    if (argc == 2) {
+        programFilepath = argv[1];
+        op = 2;
+    } else if (argc == 3) {
+        flag = argv[1];
+        programFilepath = argv[2];
+
+        if (flag == "-p") {
+            op = 0;
+        } else if ( flag == "-o") {
+            op = 1;
+        } else {
+            op = -1;
+        }
+    } else {
+        cout << "Número incorreto de argumentos." << endl;
+        cout << "Para montar diretamente: \"./montador <nome_do_programa.asm>\"" << endl;
+        cout << "Para pré-processar apenas: \"./montador -p <nome_do_programa.asm>\"" << endl;
+        cout << "Para montar um arquivo pré-processado: \"./montador -o <nome_do_programa.pre>\"" << endl;
         return 0;
     }
 
-    string flag, programFilepath;
-
-    flag = argv[1];
-    programFilepath = argv[2];
-
-    int op;
-    if (flag == "-p") {
-        op = 0;
-    } else if ( flag == "-o") {
-        op = 1;
-    } else if (flag == "-po" || flag == "-op") {
-        op = 2;
-    } else {
-        op = -1;
-    }
-
     Assembler *assembler = new Assembler(programFilepath);
-
-    // Errors e;
 
     try {
         assembler->assemble(op);

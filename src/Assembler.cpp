@@ -369,16 +369,7 @@ void Assembler::assemble(int option) {
         break;
     
     default:
-        // Erro! opção inválida
-        // delete preProcessor;
-        // delete wf;
-        // delete mf;
-
         throw invalid_argument("Opção inválida");
         break;
     }
-
-    // delete preProcessor;
-    // delete wf;
-    // delete mf;
 }
